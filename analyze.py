@@ -13,7 +13,7 @@ def tweets_to_corpus(tweet_list):
     return corpus
 
 def make_mc(corpus, old_mc=None, weights=None):
-    new_mc = markovify.NewlineText(corpus, well_formed=False, state_size=config.param.MC_STATE_SIZE, retain_original=True)
+    new_mc = markovify.NewlineText(corpus, well_formed=False, state_size=config.param.MC_STATE_SIZE, retain_original=False)
     if old_mc is None:
         return new_mc
     else:

@@ -46,11 +46,15 @@ class Logger:
             json.dump(tweet_json_list, f)
 
     def save_tweet_set(self, tweet_set):
-        with open(config.param.TWEET_SET_SAVING_PATH + self.get_timestamp_string() + "_set.pickle", "wb") as f:
+        fp = config.param.TWEET_SET_SAVING_PATH + self.get_timestamp_string() + "_set.pickle"
+        with open(fp, "wb") as f:
             pickle.dump(tweet_set, f)
+        return fp
 
     def save_mc_chain(self, mc):
-        with open(config.param.MC_SAVING_PATH + self.get_timestamp_string() + "_chain.json", "w") as f:
+        fp = config.param.MC_SAVING_PATH + self.get_timestamp_string() + "_chain.json"
+        with open(fp, "w") as f:
             json.dump(mc.to_json(), f)
+        return fp
 
 logger = Logger()

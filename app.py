@@ -11,7 +11,8 @@ import pickle
 
 def main():
     # initialize a None markov chain or load an initial one
-    mc = None
+    mc_load_path = config.param.LOAD_MC_PATH
+    set_load_path = config.param.LOAD_SET_PATH
     if config.param.LOAD_MC_PATH is not None:
         with open(config.param.LOAD_MC_PATH, "r") as f:
             mc = markovify.NewlineText.from_json(json.load(f))
@@ -20,6 +21,15 @@ def main():
         with open(config.param.LOAD_SET_PATH, "rb") as f:
             tweet_set = pickle.load(f)
     while True:
+        if config.param.LOAD_MC_PATH is not None:
+            with open(mc_load_path, "r") as f:
+                mc = markovify.NewlineText.from_json(json.load(f))
+        if config.param.LOAD_SET_PATH is not None:
+            with open(set_load_path, "rb") as f:
+                tweet_set = pickle.load(f)
+        else:
+            tweet_set = set()
+        
         print("Doing Tweet")
         logger.new_filepath()
         # authorize app
@@ -28,12 +38,12 @@ def main():
         # do query
         new_tweet_set, tweets = build_tweets(app_api, config.param.query_list, tweet_set=tweet_set)
         tweet_set = new_tweet_set|tweet_set
-        logger.save_tweets(tweets)
-        logger.save_tweet_set(tweet_set)
+        # logger.save_tweets(tweets)
+        set_load_path = logger.save_tweet_set(tweet_set)
         # build markov chain
         corp = tweets_to_corpus(tweets)
         mc = make_mc(corp, old_mc=mc, weights=(1, 1) if mc is not None else None)
-        logger.save_mc_chain(mc)
+        mc_load_path = logger.save_mc_chain(mc)
         # generate tweet
         tweet = get_tweet(mc)
         # authorize user
@@ -43,6 +53,7 @@ def main():
         # tweet
         post_tweet(user_api, tweet)
         # sleep
+        del(auth, app_api, user_api, tweet, mc, corp, tweet_set, new_tweet_set, tweets)
         print("Sleeping")
         time.sleep(config.param.TWEET_FREQ)
 
