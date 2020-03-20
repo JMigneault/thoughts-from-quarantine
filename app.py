@@ -13,23 +13,14 @@ def main():
     # initialize a None markov chain or load an initial one
     mc_load_path = config.param.LOAD_MC_PATH
     set_load_path = config.param.LOAD_SET_PATH
-    if config.param.LOAD_MC_PATH is not None:
-        with open(config.param.LOAD_MC_PATH, "r") as f:
-            mc = markovify.NewlineText.from_json(json.load(f))
-    tweet_set = set()
-    if config.param.LOAD_SET_PATH is not None:
-        with open(config.param.LOAD_SET_PATH, "rb") as f:
-            tweet_set = pickle.load(f)
+    mc, tweet_set = None, set()
     while True:
-        if config.param.LOAD_MC_PATH is not None:
+        if mc_load_path is not None:
             with open(mc_load_path, "r") as f:
                 mc = markovify.NewlineText.from_json(json.load(f))
-        if config.param.LOAD_SET_PATH is not None:
+        if set_load_path is not None:
             with open(set_load_path, "rb") as f:
-                tweet_set = pickle.load(f)
-        else:
-            tweet_set = set()
-        
+                tweet_set = pickle.load(f)        
         print("Doing Tweet")
         logger.new_filepath()
         # authorize app
