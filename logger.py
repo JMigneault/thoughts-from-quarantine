@@ -41,16 +41,6 @@ class Logger:
             f.write("ERROR; ")
             f.write("MESSAGE: {}\n".format(str(err)))
 
-    def save_tweets(self, tweet_json_list):
-        with open(config.param.TWEET_SAVING_PATH + self.get_timestamp_string() + "_tweets.json", "w") as f:
-            json.dump(tweet_json_list, f)
-
-    def save_tweet_set(self, tweet_set):
-        fp = config.param.TWEET_SET_SAVING_PATH + self.get_timestamp_string() + "_set.pickle"
-        with open(fp, "wb") as f:
-            pickle.dump(tweet_set, f)
-        return fp
-
     def save_mc_chain(self, mc):
         fp = config.param.MC_SAVING_PATH + self.get_timestamp_string() + "_chain.json"
         with open(fp, "w") as f:

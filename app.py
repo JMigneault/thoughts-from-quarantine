@@ -10,31 +10,26 @@ import json
 import pickle
 
 def main():
-    # initialize a None markov chain or load an initial one
-    mc_load_path = config.param.LOAD_MC_PATH
-    set_load_path = config.param.LOAD_SET_PATH
-    mc, tweet_set = None, set()
+    tweet_num = 0
     while True:
-        if mc_load_path is not None:
-            with open(mc_load_path, "r") as f:
-                mc = markovify.NewlineText.from_json(json.load(f))
-        if set_load_path is not None:
-            with open(set_load_path, "rb") as f:
-                tweet_set = pickle.load(f)        
+        new_query = tweet_num % config.param.QUERY_EVERY == 0
         print("Doing Tweet")
         logger.new_filepath()
-        # authorize app
-        auth = tweepy.AppAuthHandler(config.authen.CONSUMER_TOKEN, config.authen.CONSUMER_SECRET)
-        app_api = tweepy.API(auth, wait_on_rate_limit=True)
-        # do query
-        new_tweet_set, tweets = build_tweets(app_api, config.param.query_list, tweet_set=tweet_set)
-        tweet_set = new_tweet_set|tweet_set
-        # logger.save_tweets(tweets)
-        set_load_path = logger.save_tweet_set(tweet_set)
-        # build markov chain
-        corp = tweets_to_corpus(tweets)
-        mc = make_mc(corp, old_mc=mc, weights=(1, 1) if mc is not None else None)
-        mc_load_path = logger.save_mc_chain(mc)
+        if new_query:
+            # authorize app
+            auth = tweepy.AppAuthHandler(config.authen.CONSUMER_TOKEN, config.authen.CONSUMER_SECRET)
+            app_api = tweepy.API(auth, wait_on_rate_limit=True)
+            # do query
+            tweets = build_tweets(app_api, config.param.query_list)
+            # build markov chain
+            corp = tweets_to_corpus(tweets)
+            mc = make_mc(corp)
+            # save
+            mc_fp = logger.save_mc_chain(mc)
+            del(auth, app_api, tweets, corp)
+        else:
+            with open(mc_fp, "r") as f:
+                mc = markovify.NewlineText.from_json(json.load(f))
         # generate tweet
         tweet = get_tweet(mc)
         # authorize user
@@ -44,9 +39,10 @@ def main():
         # tweet
         post_tweet(user_api, tweet)
         # sleep
-        del(auth, app_api, user_api, tweet, mc, corp, tweet_set, new_tweet_set, tweets)
+        del(auth, user_api, tweet, mc)
         print("Sleeping")
         time.sleep(config.param.TWEET_FREQ)
+        tweet_num += 1
 
 if __name__ == "__main__":
     main()
